@@ -7,32 +7,47 @@ const Footer = () => {
       <div className="max-w-4xl mx-auto px-4 text-center">
         <div className="space-y-6">
           <h3 className="text-2xl font-light">
-            Let's stay connected
+            Let's connect and build the future together
           </h3>
           <p className="text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            I love hearing from people who are on their own journey of growth. 
-            Whether you want to share your story, collaborate on something meaningful, 
-            or just say hello - I'd love to hear from you.
+            I'm always excited to discuss AI, Web3, and emerging technologies. 
+            Whether you want to collaborate on research, explore new ideas, or 
+            just have a meaningful conversation about tech - let's connect.
           </p>
           
           <div className="flex justify-center space-x-6 text-slate-400">
-            <a href="mailto:hello@example.com" className="hover:text-white transition-colors">
-              hello@example.com
+            <a 
+              href="https://x.com/ravikantagrawal" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors"
+            >
+              Twitter
             </a>
             <span>•</span>
-            <a href="#" className="hover:text-white transition-colors">
+            <a 
+              href="https://www.linkedin.com/in/ravikantagrawal/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors"
+            >
               LinkedIn
             </a>
             <span>•</span>
-            <a href="#" className="hover:text-white transition-colors">
-              Twitter
+            <a 
+              href="https://youtube.com/playlist?list=PL0_fxxZ-lFiTl8tXrMhDtUx4jgBq-t0i3" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors"
+            >
+              YouTube
             </a>
           </div>
         </div>
         
         <div className="pt-12 border-t border-slate-700 mt-12">
           <p className="text-slate-400 text-sm">
-            Made with care • Updated regularly with new stories
+            Exploring AI & Web3 • Sharing insights on emerging tech
           </p>
         </div>
       </div>

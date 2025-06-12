@@ -1,32 +1,44 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Award, Book, Star } from 'lucide-react';
+import { Award, Book, Star, Cpu, Globe, Users } from 'lucide-react';
 
 const achievements = [
   {
-    icon: Award,
-    title: "Leadership Recognition",
-    description: "Led a team of 12 people through a challenging project that changed how we work together.",
+    icon: Cpu,
+    title: "AI Research & Implementation",
+    description: "Leading multiple AI transformation projects, developing practical applications of machine learning in business contexts.",
     date: "2024"
   },
   {
-    icon: Book,
-    title: "Completed Marathon",
-    description: "Ran my first marathon after 8 months of training. Learned more about persistence than I ever imagined.",
+    icon: Globe,
+    title: "Web3 Thought Leadership",
+    description: "Published comprehensive analysis on blockchain adoption, DeFi protocols, and the future of decentralized web.",
     date: "2023"
+  },
+  {
+    icon: Book,
+    title: "Technical Content Creator",
+    description: "Created extensive video series on AI and Web3, reaching thousands of technology enthusiasts and professionals.",
+    date: "2023"
+  },
+  {
+    icon: Users,
+    title: "Community Building",
+    description: "Built engaged communities around emerging technologies, fostering discussions on AI ethics and Web3 governance.",
+    date: "2022"
   },
   {
     icon: Star,
-    title: "Community Impact",
-    description: "Started a local initiative that helped 50+ families during difficult times. Small actions, big hearts.",
-    date: "2023"
+    title: "Innovation in EdTech",
+    description: "Developed learning frameworks that make complex AI and blockchain concepts accessible to broader audiences.",
+    date: "2022"
   },
   {
-    icon: Book,
-    title: "Published Article",
-    description: "Wrote about finding balance in a fast-paced world. It resonated with more people than I expected.",
-    date: "2022"
+    icon: Award,
+    title: "Digital Transformation Leader",
+    description: "Successfully guided organizations through digital transformation initiatives incorporating AI and blockchain technologies.",
+    date: "2021"
   }
 ];
 
@@ -36,10 +48,10 @@ const Achievements = () => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-light text-slate-800 mb-4">
-            Things I'm proud of
+            Key milestones & achievements
           </h2>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            Every milestone tells a story. Here are some moments that shaped who I am today.
+            Highlights from my journey in AI, Web3, and technology leadership over the past 5 years.
           </p>
         </div>
 

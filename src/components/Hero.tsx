@@ -13,11 +13,11 @@ const Hero = () => {
       <div className="max-w-4xl mx-auto text-center space-y-8">
         <div className="space-y-4">
           <h1 className="text-5xl md:text-7xl font-light text-slate-800 tracking-tight">
-            Hey, I'm <span className="text-blue-600 font-medium">Alex</span>
+            Hey, I'm <span className="text-blue-600 font-medium">Ravikant</span>
           </h1>
           <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            I'm on a journey of growth, learning, and creating meaningful connections. 
-            This is where I share my stories, wins, and the things that matter to me.
+            AI & Web3 enthusiast building the future of technology. 
+            Sharing insights on emerging tech, leadership, and digital transformation.
           </p>
         </div>
         
@@ -27,14 +27,14 @@ const Hero = () => {
             size="lg" 
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full transition-all duration-300 hover:scale-105"
           >
-            Get to know me
+            Explore my journey
           </Button>
           <Button 
             variant="outline" 
             size="lg"
             className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 rounded-full transition-all duration-300"
           >
-            See my work
+            View my content
           </Button>
         </div>
 
