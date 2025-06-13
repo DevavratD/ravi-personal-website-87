@@ -1,8 +1,7 @@
-
 import React from 'react';
 import Hero from '@/components/Hero';
 import About from '@/components/About';
-import Achievements from '@/components/Achievements';
+import MyJourney from '@/components/MyJourney';
 import MediaGallery from '@/components/MediaGallery';
 import Footer from '@/components/Footer';
 
@@ -11,7 +10,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Hero />
       <About />
-      <Achievements />
+      <MyJourney />
       <MediaGallery />
       <Footer />
     </div>

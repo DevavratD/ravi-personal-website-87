@@ -66,7 +66,7 @@ const mediaItems = [
 const MediaGallery = () => {
   const [filter, setFilter] = useState('all');
 
-  const filteredItems = mediaItems.filter(item => 
+  const filteredItems = mediaItems.filter(item =>
     filter === 'all' || item.type === filter
   );
 
@@ -84,7 +84,7 @@ const MediaGallery = () => {
       case 'video': return 'YouTube Content';
       case 'whitepaper': return 'Thought Leadership';
       case 'article': return 'Tech Learning Articles';
-      default: return 'Content & Insights';
+      default: return 'My Thoughts';
     }
   };
 
@@ -98,7 +98,7 @@ const MediaGallery = () => {
           <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-8">
             Explore my latest insights on AI, Web3, and emerging technologies through videos, research papers, and in-depth articles.
           </p>
-          
+
           <div className="flex justify-center space-x-2">
             {[
               { key: 'all', label: 'All Content' },
@@ -110,11 +110,10 @@ const MediaGallery = () => {
                 key={key}
                 variant={filter === key ? "default" : "outline"}
                 onClick={() => setFilter(key)}
-                className={`rounded-full ${
-                  filter === key 
-                    ? 'bg-blue-600 hover:bg-blue-700' 
+                className={`rounded-full ${filter === key
+                    ? 'bg-blue-600 hover:bg-blue-700'
                     : 'border-slate-300 text-slate-700 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 {label}
               </Button>
@@ -128,7 +127,7 @@ const MediaGallery = () => {
             return (
               <Card key={index} className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <div className="relative overflow-hidden">
-                  <img 
+                  <img
                     src={item.thumbnail}
                     alt={item.title}
                     className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
