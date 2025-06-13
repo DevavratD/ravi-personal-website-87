@@ -16,21 +16,21 @@ const Hero = () => {
             Hey, I'm <span className="text-blue-600 font-medium">Ravikant</span>
           </h1>
           <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            AI & Web3 enthusiast building the future of technology. 
+            AI & Web3 enthusiast building the future of technology.
             Sharing insights on emerging tech, leadership, and digital transformation.
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button 
+          <Button
             onClick={scrollToAbout}
-            size="lg" 
+            size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full transition-all duration-300 hover:scale-105"
           >
             Explore my journey
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="lg"
             className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 rounded-full transition-all duration-300"
           >
