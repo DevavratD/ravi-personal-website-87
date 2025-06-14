@@ -1,0 +1,36 @@
+{
+    "heroTitle": "Welcome to My Portfolio",
+    "heroDescription": "I'm a passionate developer creating amazing web experiences",
+    "aboutTitle": "About Me",
+    "aboutDescription": "I'm a full-stack developer with a passion for creating beautiful and functional web applications.",
+    "skills": [
+        {
+            "name": "React",
+            "level": 90
+        },
+        {
+            "name": "TypeScript",
+            "level": 85
+        }
+    ],
+    "projects": [
+        {
+            "title": "Project 1",
+            "description": "An amazing project description",
+            "image": "/images/uploads/project1.jpg",
+            "link": "https://project1.com"
+        }
+    ],
+    "contactTitle": "Get in Touch",
+    "contactDescription": "Feel free to reach out to me for any opportunities or collaborations",
+    "socialLinks": [
+        {
+            "platform": "GitHub",
+            "url": "https://github.com/yourusername"
+        },
+        {
+            "platform": "LinkedIn",
+            "url": "https://linkedin.com/in/yourusername"
+        }
+    ]
+}
