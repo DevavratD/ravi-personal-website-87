@@ -2,15 +2,17 @@ import React from 'react';
 import Hero from '@/components/Hero';
 import About from '@/components/About';
 import MyJourney from '@/components/MyJourney';
+import Milestones from '@/components/Achievements';
 import MediaGallery from '@/components/MediaGallery';
 import Footer from '@/components/Footer';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Hero />
       <About />
       <MyJourney />
+      <Milestones />
       <MediaGallery />
       <Footer />
     </div>

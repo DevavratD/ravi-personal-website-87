@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowDown } from 'lucide-react';
@@ -13,11 +12,11 @@ const Hero = () => {
       <div className="max-w-4xl mx-auto text-center space-y-8">
         <div className="space-y-4">
           <h1 className="text-5xl md:text-7xl font-light text-slate-800 tracking-tight">
-            Hey, I'm <span className="text-blue-600 font-medium">Ravikant</span>
+            Hi, I'm <span className="text-blue-600 font-medium">Ravikant</span> 👋
           </h1>
           <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            AI & Web3 enthusiast building the future of technology.
-            Sharing insights on emerging tech, leadership, and digital transformation.
+            AI & Web3 Growth Strategy Leader
+            Building the future of decentralized identity and AI-driven ecosystems
           </p>
         </div>
 
@@ -27,14 +26,14 @@ const Hero = () => {
             size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full transition-all duration-300 hover:scale-105"
           >
-            Explore my journey
+            Learn about my journey
           </Button>
           <Button
             variant="outline"
             size="lg"
             className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 rounded-full transition-all duration-300"
           >
-            View my content
+            Connect with me
           </Button>
         </div>
 
