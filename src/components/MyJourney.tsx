@@ -3,7 +3,7 @@ import Globe from 'globe.gl';
 import * as THREE from 'three';
 import worldMapData from 'world-map-geojson';
 import { getJourneyPoints } from '@/utils/contentful';
-import { IJourneyPoint } from '@/types/contentful';
+
 
 // Types
 interface JourneyPoint {
@@ -82,14 +82,14 @@ const MyJourney: React.FC = () => {
         const fetchJourneyPoints = async () => {
             try {
                 const points = await getJourneyPoints();
-                const formattedPoints = points.map((point) => ({
+                const formattedPoints: JourneyPoint[] = points.map((point) => ({
                     id: point.sys.id,
                     title: point.fields.title,
                     location: point.fields.location,
                     description: point.fields.description,
                     year: point.fields.year,
                     icon: point.fields.icon,
-                    coordinates: [point.fields.latitude, point.fields.longitude],
+                    coordinates: [point.fields.latitude, point.fields.longitude] as [number, number],
                     color: point.fields.color || GLOBE_COLORS.point,
                     order: point.fields.order
                 }));
@@ -143,7 +143,37 @@ const MyJourney: React.FC = () => {
                 return group;
             };
 
-            const globe = new Globe(globeRef.current!);
+            // Create globe instance with proper typing
+            const globe = new (Globe as any)(globeRef.current!);
+
+            // Set canvas size based on container with mobile-specific logic
+            const container = globeRef.current;
+            let width = container?.clientWidth || 0;
+            let height = container?.clientHeight || 0;
+
+            // Mobile-specific sizing adjustments
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                // Use full viewport width for mobile to prevent horizontal clipping
+                width = Math.max(width, window.innerWidth);
+                height = Math.max(height, 400); // Minimum height for mobile
+            }
+
+            const canvas = container?.querySelector('canvas');
+            if (canvas) {
+                canvas.width = width * (window.devicePixelRatio || 2);
+                canvas.height = height * (window.devicePixelRatio || 2);
+                canvas.style.width = `${width}px`;
+                canvas.style.height = `${height}px`;
+
+                // Ensure canvas doesn't get clipped on mobile
+                if (isMobile) {
+                    canvas.style.minWidth = '100vw';
+                    canvas.style.position = 'absolute';
+                    canvas.style.left = '50%';
+                    canvas.style.transform = 'translateX(-50%)';
+                }
+            }
 
             // Basic globe settings
             globe.backgroundColor('rgba(0,0,0,0)');
@@ -211,7 +241,53 @@ const MyJourney: React.FC = () => {
 
         initializeGlobe();
 
+        // Add resize handler
+        const handleResize = () => {
+            if (globeInstanceRef.current && globeRef.current) {
+                const container = globeRef.current;
+                let width = container.clientWidth;
+                let height = container.clientHeight;
+
+                // Mobile-specific sizing
+                const isMobile = window.innerWidth < 768;
+                if (isMobile) {
+                    width = Math.max(width, window.innerWidth);
+                    height = Math.max(height, 400);
+                }
+
+                const canvas = container.querySelector('canvas');
+                if (canvas) {
+                    canvas.width = width * (window.devicePixelRatio || 2);
+                    canvas.height = height * (window.devicePixelRatio || 2);
+                    canvas.style.width = `${width}px`;
+                    canvas.style.height = `${height}px`;
+
+                    if (isMobile) {
+                        canvas.style.minWidth = '100vw';
+                        canvas.style.position = 'absolute';
+                        canvas.style.left = '50%';
+                        canvas.style.transform = 'translateX(-50%)';
+                    }
+                }
+
+                // Instead of calling resize(), we'll update the globe's width and height
+                if (globeInstanceRef.current) {
+                    const globe = globeInstanceRef.current;
+                    globe.width(width);
+                    globe.height(height);
+
+                    // Force a re-render
+                    globe.renderer().setSize(width, height);
+                }
+            }
+        };
+
+        // Add resize event listener
+        window.addEventListener('resize', handleResize);
+
+        // Cleanup function
         return () => {
+            window.removeEventListener('resize', handleResize);
             if (globeInstanceRef.current) {
                 globeInstanceRef.current.controls().dispose();
             }
@@ -423,14 +499,15 @@ const MyJourney: React.FC = () => {
                 </p>
             </div>
 
-            <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center mt-32 md:mt-20">
+            <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center mt-32 md:mt-20 overflow-x-hidden">
                 {/* Globe section - now visible on all devices */}
-                <div className="w-full md:w-1/2 lg:w-1/2 xl:w-1/2 flex items-center justify-center relative h-[250px] xs:h-[275px] sm:h-[325px] md:h-[400px] lg:h-[500px] xl:h-[600px] mb-8 md:mb-0">
+                <div className="w-full md:w-1/2 lg:w-1/2 xl:w-1/2 flex items-center justify-center relative h-[400px] xs:h-[400px] sm:h-[450px] md:h-[400px] lg:h-[500px] xl:h-[600px] mb-8 md:mb-0">
                     {/* Globe container */}
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-amber-50/30 z-0" />
                     <div
                         ref={globeRef}
-                        className="w-full h-full relative z-10 flex items-center justify-center scale-[0.5] xs:scale-[0.55] sm:scale-[0.65] md:scale-[0.75] lg:scale-[0.85] xl:scale-100"
+                        className="w-full h-full relative z-10 flex items-center justify-center"
+                        style={{ minWidth: '100vw', minHeight: '400px' }}
                     />
                 </div>
 
