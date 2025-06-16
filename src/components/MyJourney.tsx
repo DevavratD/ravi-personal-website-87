@@ -3,7 +3,7 @@ import Globe from 'globe.gl';
 import * as THREE from 'three';
 import worldMapData from 'world-map-geojson';
 import { getJourneyPoints } from '@/utils/contentful';
-
+import { IJourneyPoint } from '@/types/contentful';
 
 // Types
 interface JourneyPoint {
@@ -82,14 +82,14 @@ const MyJourney: React.FC = () => {
         const fetchJourneyPoints = async () => {
             try {
                 const points = await getJourneyPoints();
-                const formattedPoints: JourneyPoint[] = points.map((point) => ({
+                const formattedPoints = points.map((point) => ({
                     id: point.sys.id,
                     title: point.fields.title,
                     location: point.fields.location,
                     description: point.fields.description,
                     year: point.fields.year,
                     icon: point.fields.icon,
-                    coordinates: [point.fields.latitude, point.fields.longitude] as [number, number],
+                    coordinates: [point.fields.latitude, point.fields.longitude],
                     color: point.fields.color || GLOBE_COLORS.point,
                     order: point.fields.order
                 }));
@@ -143,37 +143,7 @@ const MyJourney: React.FC = () => {
                 return group;
             };
 
-            // Create globe instance with proper typing
-            const globe = new (Globe as any)(globeRef.current!);
-
-            // Set canvas size based on container with mobile-specific logic
-            const container = globeRef.current;
-            let width = container?.clientWidth || 0;
-            let height = container?.clientHeight || 0;
-
-            // Mobile-specific sizing adjustments
-            const isMobile = window.innerWidth < 768;
-            if (isMobile) {
-                // Use full viewport width for mobile to prevent horizontal clipping
-                width = Math.max(width, window.innerWidth);
-                height = Math.max(height, 400); // Minimum height for mobile
-            }
-
-            const canvas = container?.querySelector('canvas');
-            if (canvas) {
-                canvas.width = width * (window.devicePixelRatio || 2);
-                canvas.height = height * (window.devicePixelRatio || 2);
-                canvas.style.width = `${width}px`;
-                canvas.style.height = `${height}px`;
-
-                // Ensure canvas doesn't get clipped on mobile
-                if (isMobile) {
-                    canvas.style.minWidth = '100vw';
-                    canvas.style.position = 'absolute';
-                    canvas.style.left = '50%';
-                    canvas.style.transform = 'translateX(-50%)';
-                }
-            }
+            const globe = new Globe(globeRef.current!);
 
             // Basic globe settings
             globe.backgroundColor('rgba(0,0,0,0)');
@@ -197,9 +167,9 @@ const MyJourney: React.FC = () => {
             globe.labelLat((d: JourneyPoint) => d.coordinates[0]);
             globe.labelLng((d: JourneyPoint) => d.coordinates[1]);
             globe.labelText((d: JourneyPoint) => d.location);
-            globe.labelSize(1.5);
+            globe.labelSize(2.5);
             globe.labelDotRadius(0.4);
-            globe.labelColor(() => GLOBE_COLORS.label);
+            globe.labelColor(() => '#1e293b');
             globe.labelResolution(2);
 
             // Arcs
@@ -241,53 +211,7 @@ const MyJourney: React.FC = () => {
 
         initializeGlobe();
 
-        // Add resize handler
-        const handleResize = () => {
-            if (globeInstanceRef.current && globeRef.current) {
-                const container = globeRef.current;
-                let width = container.clientWidth;
-                let height = container.clientHeight;
-
-                // Mobile-specific sizing
-                const isMobile = window.innerWidth < 768;
-                if (isMobile) {
-                    width = Math.max(width, window.innerWidth);
-                    height = Math.max(height, 400);
-                }
-
-                const canvas = container.querySelector('canvas');
-                if (canvas) {
-                    canvas.width = width * (window.devicePixelRatio || 2);
-                    canvas.height = height * (window.devicePixelRatio || 2);
-                    canvas.style.width = `${width}px`;
-                    canvas.style.height = `${height}px`;
-
-                    if (isMobile) {
-                        canvas.style.minWidth = '100vw';
-                        canvas.style.position = 'absolute';
-                        canvas.style.left = '50%';
-                        canvas.style.transform = 'translateX(-50%)';
-                    }
-                }
-
-                // Instead of calling resize(), we'll update the globe's width and height
-                if (globeInstanceRef.current) {
-                    const globe = globeInstanceRef.current;
-                    globe.width(width);
-                    globe.height(height);
-
-                    // Force a re-render
-                    globe.renderer().setSize(width, height);
-                }
-            }
-        };
-
-        // Add resize event listener
-        window.addEventListener('resize', handleResize);
-
-        // Cleanup function
         return () => {
-            window.removeEventListener('resize', handleResize);
             if (globeInstanceRef.current) {
                 globeInstanceRef.current.controls().dispose();
             }
@@ -499,73 +423,72 @@ const MyJourney: React.FC = () => {
                 </p>
             </div>
 
-            <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center mt-32 md:mt-20 overflow-x-hidden">
-                {/* Globe section - now visible on all devices */}
-                <div className="w-full md:w-1/2 lg:w-1/2 xl:w-1/2 flex items-center justify-center relative h-[400px] xs:h-[400px] sm:h-[450px] md:h-[400px] lg:h-[500px] xl:h-[600px] mb-8 md:mb-0">
+            <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center mt-32 md:mt-20">
+                {/* Globe section - hidden on mobile */}
+                <div className="hidden md:flex md:w-1/2 items-center justify-center relative h-[600px]">
                     {/* Globe container */}
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-amber-50/30 z-0" />
                     <div
                         ref={globeRef}
                         className="w-full h-full relative z-10 flex items-center justify-center"
-                        style={{ minWidth: '100vw', minHeight: '400px' }}
                     />
                 </div>
 
                 {/* Cards section */}
-                <div className="w-full md:w-1/2 lg:w-1/2 xl:w-1/2 flex items-center justify-center p-2 xs:p-2.5 sm:p-3 md:p-4 lg:p-6 xl:p-8">
-                    <div className="relative w-full max-w-[95%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[85%] lg:max-w-xl mx-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-16">
+                <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8">
+                    <div className="relative w-full max-w-xl mx-auto px-4 md:px-16">
                         {/* Navigation buttons */}
                         <button
                             onClick={() => setCurrentPointIndex(i => Math.max(i - 1, 0))}
                             disabled={currentPointIndex === 0}
-                            className={`absolute md:-left-8 lg:-left-12 left-1 sm:left-2 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 md:p-3 lg:p-4 rounded-full transition-all duration-300 z-10 
+                            className={`absolute md:-left-12 left-2 top-1/2 -translate-y-1/2 p-4 rounded-full transition-all duration-300 z-10 
                                 bg-white/90 hover:bg-white shadow-lg hover:shadow-xl hover:scale-110 
                                 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-lg
                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                                 ${currentPointIndex === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                             aria-label="Previous location"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-600">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
                         <button
                             onClick={() => setCurrentPointIndex(i => Math.min(i + 1, journeyPoints.length - 1))}
                             disabled={currentPointIndex === journeyPoints.length - 1}
-                            className={`absolute md:-right-8 lg:-right-12 right-1 sm:right-2 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 md:p-3 lg:p-4 rounded-full transition-all duration-300 z-10 
+                            className={`absolute md:-right-12 right-2 top-1/2 -translate-y-1/2 p-4 rounded-full transition-all duration-300 z-10 
                                 bg-white/90 hover:bg-white shadow-lg hover:shadow-xl hover:scale-110 
                                 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-lg
                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                                 ${currentPointIndex === journeyPoints.length - 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                             aria-label="Next location"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-600">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
 
                         {/* Card */}
-                        <div className="relative bg-white/95 backdrop-blur-md rounded-lg sm:rounded-xl md:rounded-2xl shadow-xl transition-all duration-500 hover:shadow-2xl overflow-hidden transform hover:-translate-y-1">
+                        <div className="relative bg-white/95 backdrop-blur-md rounded-2xl shadow-xl transition-all duration-500 hover:shadow-2xl overflow-hidden transform hover:-translate-y-1">
                             {/* Year badge */}
-                            <div className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-6 z-10">
-                                <div className="px-2 sm:px-3 md:px-4 py-1 md:py-2 bg-gradient-to-r from-blue-50 to-blue-100 rounded-full shadow-sm">
-                                    <span className="text-xs sm:text-sm md:text-base text-blue-600 font-medium tracking-wide">
+                            <div className="absolute top-6 right-6 z-10">
+                                <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 rounded-full shadow-sm">
+                                    <span className="text-blue-600 font-medium tracking-wide">
                                         {journeyPoints[currentPointIndex].year}
                                     </span>
                                 </div>
                             </div>
 
                             {/* Location header */}
-                            <div className="p-3 sm:p-4 md:p-6 lg:p-8 pb-3 sm:pb-4 md:pb-6 border-b border-slate-100 bg-gradient-to-br from-white to-blue-50/30">
-                                <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-lg md:rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center text-lg sm:text-xl md:text-2xl shadow-sm transform transition-transform duration-300 hover:scale-110">
+                            <div className="p-8 pb-6 border-b border-slate-100 bg-gradient-to-br from-white to-blue-50/30">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center text-2xl shadow-sm transform transition-transform duration-300 hover:scale-110">
                                         {journeyPoints[currentPointIndex].icon}
                                     </div>
                                     <div>
-                                        <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-slate-900 tracking-tight">
+                                        <h3 className="text-2xl font-semibold text-slate-900 tracking-tight">
                                             {journeyPoints[currentPointIndex].location}
                                         </h3>
-                                        <p className="text-xs sm:text-sm md:text-base text-slate-600 mt-0.5 sm:mt-1 font-medium">
+                                        <p className="text-slate-600 mt-1 font-medium">
                                             {journeyPoints[currentPointIndex].title}
                                         </p>
                                     </div>
@@ -573,8 +496,8 @@ const MyJourney: React.FC = () => {
                             </div>
 
                             {/* Description */}
-                            <div className="p-3 sm:p-4 md:p-6 lg:p-8 bg-gradient-to-br from-white to-blue-50/20">
-                                <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-700 leading-relaxed">
+                            <div className="p-8 bg-gradient-to-br from-white to-blue-50/20">
+                                <p className="text-slate-800 leading-relaxed text-xl">
                                     {journeyPoints[currentPointIndex].description}
                                 </p>
                             </div>

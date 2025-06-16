@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video, FileText, BookOpen, ExternalLink, ChevronLeft, ChevronRight, Linkedin, Twitter, X } from 'lucide-react';
+import { Video, FileText, BookOpen, ExternalLink, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { getMediaItems } from '@/utils/contentful';
 import { IMediaItem } from '@/types/contentful';
 import { getThumbnailUrl, getEmbedUrl, extractVideoId } from '@/utils/youtube';
@@ -87,97 +87,60 @@ const XEmbed = ({ url }: { url: string }) => {
   );
 };
 
-// Add LinkedIn script to window
-declare global {
-  interface Window {
-    IN: any;
-  }
-}
-
 const MediaGallery = () => {
-  const [filter, setFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedVideo, setSelectedVideo] = useState(null);
-  const [mediaItems, setMediaItems] = useState<IMediaItem[]>([]);
+  const [items, setItems] = useState<IMediaItem[]>([]);
+  const [filter, setFilter] = useState<string>('featured');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string } | null>(null);
 
   useEffect(() => {
-    const fetchMediaItems = async () => {
+    const fetchItems = async () => {
       try {
-        const items = await getMediaItems();
-        setMediaItems(items);
+        const data = await getMediaItems();
+        setItems(data);
       } catch (error) {
         console.error('Error fetching media items:', error);
       } finally {
         setIsLoading(false);
       }
     };
-
-    fetchMediaItems();
+    fetchItems();
   }, []);
 
-  useEffect(() => {
-    // Add LinkedIn script
-    const script = document.createElement('script');
-    script.src = 'https://platform.linkedin.com/in.js';
-    script.type = 'text/javascript';
-    document.head.appendChild(script);
+  const filteredItems = items.filter(item => {
+    if (filter === 'all') return true;
+    if (filter === 'featured') return item.fields.isFeatured;
+    return item.fields.type === filter;
+  });
 
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
-
-  const filteredItems = mediaItems.filter(item =>
-    filter === 'all' || item.fields.type === filter
-  );
-
-  // Calculate pagination
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentItems = filteredItems.slice(startIndex, endIndex);
-
-  // Reset to first page when filter changes
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [filter]);
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'youtube': return Video;
-      case 'linkedin': return Linkedin;
-      case 'twitter': return Twitter;
-      case 'document': return FileText;
-      case 'article': return BookOpen;
-      default: return BookOpen;
-    }
-  };
+  const currentItems = filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const getSectionTitle = () => {
     switch (filter) {
-      case 'youtube': return 'My Web3 & AI Talks';
-      case 'linkedin': return 'My Industry Insights';
-      case 'twitter': return 'My Tech Thoughts';
-      case 'article': return 'My Publications';
-      case 'document': return 'My Research';
+      case 'talks': return 'My Talks & Presentations';
+      case 'articles': return 'My Articles & Blog Posts';
+      case 'thought-leadership': return 'Thought Leadership';
+      case 'featured': return 'Featured Content';
       default: return 'My Content';
     }
   };
 
   const renderEmbed = (item: IMediaItem) => {
     switch (item.fields.type) {
-      case 'youtube':
-        const videoId = item.fields.videoId || extractVideoId(item.fields.url);
+      case 'talks':
+        const videoId = item.fields.videoId || (item.fields.url ? extractVideoId(item.fields.url) : null);
         if (!videoId) {
           return (
             <div className="w-full h-[200px] bg-gray-100 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500">Invalid YouTube URL</p>
+              <p className="text-gray-500">Invalid Video URL</p>
             </div>
           );
         }
         return (
-          <div className="relative cursor-pointer" onClick={() => setSelectedVideo({ ...item, videoId })}>
+          <div className="relative cursor-pointer" onClick={() => setSelectedVideo({ videoId, title: item.fields.title })}>
             <iframe
               width="100%"
               height="200"
@@ -191,27 +154,47 @@ const MediaGallery = () => {
             <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-300" />
           </div>
         );
-      case 'linkedin':
-        return <LinkedInEmbed url={item.fields.embedUrl || item.fields.url} />;
-      case 'twitter':
-        return <XEmbed url={item.fields.url} />;
-      case 'document':
+      case 'articles':
+      case 'thought-leadership':
+        // Handle LinkedIn content
+        if (item.fields.url?.includes('linkedin.com')) {
+          return <LinkedInEmbed url={item.fields.embedUrl || item.fields.url} />;
+        }
+        // Handle Twitter content
+        if (item.fields.url?.includes('twitter.com') || item.fields.url?.includes('x.com')) {
+          return <XEmbed url={item.fields.url} />;
+        }
+        // Handle embedded content (like documents or articles)
+        if (item.fields.embedUrl) {
+          return (
+            <iframe
+              src={item.fields.embedUrl}
+              width="100%"
+              height="200"
+              frameBorder="0"
+              className="rounded-lg"
+            />
+          );
+        }
+        // Fallback to thumbnail image
         return (
-          <iframe
-            src={item.fields.embedUrl}
-            width="100%"
-            height="200"
-            frameBorder="0"
-            className="rounded-lg"
-          />
+          <div className="w-full h-[200px] bg-gray-100 rounded-lg flex items-center justify-center">
+            <img
+              src={item.fields.thumbnail?.fields?.file?.url}
+              alt={item.fields.title}
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
         );
       default:
         return (
-          <img
-            src={item.fields.thumbnail?.fields?.file?.url}
-            alt={item.fields.title}
-            className="w-full h-full object-cover rounded-lg"
-          />
+          <div className="w-full h-[200px] bg-gray-100 rounded-lg flex items-center justify-center">
+            <img
+              src={item.fields.thumbnail?.fields?.file?.url}
+              alt={item.fields.title}
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
         );
     }
   };
@@ -221,7 +204,7 @@ const MediaGallery = () => {
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
-            <p className="text-slate-600">Loading media items...</p>
+            <p className="text-slate-600">Loading content...</p>
           </div>
         </div>
       </section>
@@ -242,17 +225,19 @@ const MediaGallery = () => {
 
           <div className="flex flex-wrap justify-center gap-2">
             {[
+              { key: 'featured', label: 'Featured' },
               { key: 'all', label: 'All Content' },
-              { key: 'youtube', label: 'Talks' },
-              { key: 'linkedin', label: 'Insights' },
-              { key: 'twitter', label: 'Thoughts' },
-              { key: 'article', label: 'Publications' },
-              { key: 'document', label: 'Research' }
+              { key: 'talks', label: 'Talks' },
+              { key: 'articles', label: 'Articles' },
+              { key: 'thought-leadership', label: 'Thought Leadership' }
             ].map(({ key, label }) => (
               <Button
                 key={key}
                 variant={filter === key ? "default" : "outline"}
-                onClick={() => setFilter(key)}
+                onClick={() => {
+                  setFilter(key);
+                  setCurrentPage(1);
+                }}
                 className={`rounded-full ${filter === key
                   ? 'bg-blue-600 hover:bg-blue-700'
                   : 'border-slate-300 text-slate-700 hover:bg-slate-50'
@@ -265,64 +250,66 @@ const MediaGallery = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentItems.map((item) => {
-            const IconComponent = getIcon(item.fields.type);
-            return (
-              <Card key={item.sys.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="relative overflow-hidden h-[200px]">
-                  {renderEmbed(item)}
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm">
-                    <IconComponent className="w-4 h-4 text-slate-600" />
+          {currentItems.map((item) => (
+            <Card key={item.sys.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="relative overflow-hidden h-[200px]">
+                {renderEmbed(item)}
+              </div>
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-base font-medium text-slate-800 mb-2 line-clamp-2">
+                      {item.fields.title}
+                    </h3>
+                    {item.fields.description && (
+                      <p className="text-sm text-slate-600 line-clamp-2 mb-2">
+                        {item.fields.description}
+                      </p>
+                    )}
+                    {item.fields.date && (
+                      <p className="text-xs text-slate-500">
+                        {new Date(item.fields.date).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
+                  <a
+                    href={item.fields.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-700 transition-colors inline-flex items-center shrink-0"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
                 </div>
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-base font-medium text-slate-800 mb-2 line-clamp-2">
-                        {item.fields.title}
-                      </h3>
-                    </div>
-                    <a
-                      href={item.fields.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700 transition-colors inline-flex items-center shrink-0"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Video Modal */}
         {selectedVideo && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-100 rounded-xl w-full max-w-4xl relative">
-              <button
-                onClick={() => setSelectedVideo(null)}
-                className="absolute -top-4 -right-4 bg-gray-200 rounded-full p-2 shadow-lg hover:bg-gray-300 transition-colors"
-              >
-                <X className="w-6 h-6 text-gray-600" />
-              </button>
-              <div className="p-4">
-                <h3 className="text-xl font-medium text-gray-800 mb-4">
-                  {selectedVideo.fields.title}
-                </h3>
-                <div className="aspect-video w-full">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={getEmbedUrl(selectedVideo.videoId)}
-                    title={selectedVideo.fields.title}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="rounded-lg"
-                  />
-                </div>
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-4 max-w-4xl w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-medium text-slate-800">{selectedVideo.title}</h3>
+                <button
+                  onClick={() => setSelectedVideo(null)}
+                  className="text-slate-500 hover:text-slate-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="aspect-w-16 aspect-h-9">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={getEmbedUrl(selectedVideo.videoId)}
+                  title={selectedVideo.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="rounded-lg"
+                />
               </div>
             </div>
           </div>
@@ -330,41 +317,22 @@ const MediaGallery = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="mt-10 flex items-center justify-center space-x-3">
+          <div className="flex justify-center gap-2 mt-8">
             <Button
               variant="outline"
-              onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="rounded-full px-3 py-1.5 text-sm"
+              className="rounded-full"
             >
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Previous
+              <ChevronLeft className="w-4 h-4" />
             </Button>
-
-            <div className="flex items-center space-x-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  onClick={() => setCurrentPage(page)}
-                  className={`rounded-full w-7 h-7 p-0 text-sm ${currentPage === page
-                    ? 'bg-blue-600 hover:bg-blue-700'
-                    : 'border-slate-300 text-slate-700 hover:bg-slate-50'
-                    }`}
-                >
-                  {page}
-                </Button>
-              ))}
-            </div>
-
             <Button
               variant="outline"
-              onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="rounded-full px-3 py-1.5 text-sm"
+              className="rounded-full"
             >
-              Next
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         )}

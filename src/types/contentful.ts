@@ -58,12 +58,15 @@ export interface IAchievementsContent {
 export interface IMediaItem {
     fields: {
         title: string;
-        type: 'youtube' | 'linkedin' | 'twitter' | 'document' | 'article';
+        type: 'talks' | 'articles' | 'thought-leadership';
         url: string;
         embedUrl?: string;
         videoId?: string;
         thumbnail?: IContentfulImage;
         order: number;
+        isFeatured: boolean;
+        description?: string;
+        date?: string;
     };
     sys: {
         id: string;

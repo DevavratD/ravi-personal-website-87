@@ -12,10 +12,10 @@ const iconMap: { [key: string]: React.ReactNode } = {
 
 const Footer = () => {
   return (
-    <footer id="connect" className="bg-slate-900 py-20" role="contentinfo">
+    <footer className="bg-slate-900 py-20" role="contentinfo">
       <div className="max-w-6xl mx-auto px-4">
         {/* Contact and Social Section */}
-        <div className="text-center mb-16">
+        <div id="connect" className="text-center mb-16">
           <h2 className="text-4xl font-light text-white mb-4">
             Let's Connect
           </h2>
@@ -34,7 +34,7 @@ const Footer = () => {
             <h3 className="text-lg font-medium text-white mb-2">Email</h3>
             <p className="text-slate-300 mb-4">Get in touch for collaborations and inquiries</p>
             <a
-              href="mailto:contact@example.com"
+              href="mailto:ravikant.agrawal@gmail.com"
               className="text-blue-400 hover:text-blue-300 font-medium inline-flex items-center"
               aria-label="Send Message for Email"
             >
@@ -50,7 +50,9 @@ const Footer = () => {
             <h3 className="text-lg font-medium text-white mb-2">Schedule Call</h3>
             <p className="text-slate-300 mb-4">Book a 30-minute video call to discuss opportunities</p>
             <a
-              href="#"
+              href="https://calendly.com/ravidilse"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-400 hover:text-blue-300 font-medium inline-flex items-center"
               aria-label="Book Meeting for Schedule Call"
             >
@@ -67,6 +69,8 @@ const Footer = () => {
             <p className="text-slate-300 mb-4">Connect with me directly on Telegram for quick conversations</p>
             <a
               href="https://t.me/ravidilse"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-400 hover:text-blue-300 font-medium inline-flex items-center"
               aria-label="Message on Telegram"
             >
