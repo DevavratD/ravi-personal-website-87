@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Globe from 'globe.gl';
 import * as THREE from 'three';
 import worldMapData from 'world-map-geojson';
+import { getJourneyPoints } from '@/utils/contentful';
+import { IJourneyPoint } from '@/types/contentful';
 
 // Types
 interface JourneyPoint {
@@ -13,6 +15,7 @@ interface JourneyPoint {
     icon: string;
     coordinates: [number, number];
     color: string;
+    order?: number;
 }
 
 interface GlobeControls {
@@ -41,68 +44,7 @@ interface ArcData {
 type GlobeInstance = ReturnType<typeof Globe>;
 
 // Constants
-const JOURNEY_POINTS: JourneyPoint[] = [
-    {
-        id: 1,
-        title: "The Beginning",
-        location: "Maharashtra, India",
-        description: "Started my journey in the heart of India, laying the foundation for my future endeavors in technology and innovation.",
-        year: "2016",
-        icon: "🚀",
-        coordinates: [19.7515, 75.7139],
-        color: "#3B82F6"
-    },
-    {
-        id: 2,
-        title: "Business Strategy Consultant",
-        location: "Texas, USA",
-        description: "Worked as a Business and Strategy consultant for financial institutions, gaining deep insights into the financial sector.",
-        year: "2018",
-        icon: "💼",
-        coordinates: [31.9686, -99.9018],
-        color: "#3B82F6"
-    },
-    {
-        id: 3,
-        title: "Banking Innovation",
-        location: "Ottawa, Canada",
-        description: "Expanded my expertise as a Business and Strategy consultant for retail banks, focusing on digital transformation.",
-        year: "2019",
-        icon: "🏦",
-        coordinates: [45.4215, -75.6972],
-        color: "#3B82F6"
-    },
-    {
-        id: 4,
-        title: "Emerging Tech Explorer",
-        location: "London, UK",
-        description: "Served as an Emerging Tech consultant for consumer lenders, where my journey into Blockchain technology began.",
-        year: "2020",
-        icon: "🔗",
-        coordinates: [51.5074, -0.1278],
-        color: "#3B82F6"
-    },
-    {
-        id: 5,
-        title: "Blockchain Deep Dive",
-        location: "Dubai, UAE",
-        description: "Went through the blockchain rabbit hole with Polygon, immersing myself in the world of Web3 and decentralized technologies.",
-        year: "2022",
-        icon: "⛓️",
-        coordinates: [25.2048, 55.2708],
-        color: "#3B82F6"
-    },
-    {
-        id: 6,
-        title: "AI & Web3 Convergence",
-        location: "Global",
-        description: "Working at the intersection of AI and Web3, exploring how these technologies can reshape our digital future.",
-        year: "Present",
-        icon: "🌐",
-        coordinates: [0, 0],  // This won't be used for a point, just for the card
-        color: "#3B82F6"
-    }
-];
+
 
 const GLOBE_COLORS = {
     ocean: '#3b82f6',
@@ -115,6 +57,12 @@ const GLOBE_COLORS = {
     atmosphere: '#3b82f6'
 };
 
+// Add this helper function at the top level, after the constants
+const isCloseTo = (a: number, b: number): boolean => {
+    const tolerance = Math.abs(b * 0.05); // 5% of the target value
+    return Math.abs(a - b) < tolerance;
+};
+
 const MyJourney: React.FC = () => {
     // Refs
     const globeRef = useRef<HTMLDivElement>(null);
@@ -123,13 +71,45 @@ const MyJourney: React.FC = () => {
     const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
     // State
+    const [journeyPoints, setJourneyPoints] = useState<JourneyPoint[]>([]);
     const [currentPointIndex, setCurrentPointIndex] = useState(0);
     const [globeReady, setGlobeReady] = useState(false);
     const [isMouseOverGlobe, setIsMouseOverGlobe] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch journey points
+    useEffect(() => {
+        const fetchJourneyPoints = async () => {
+            try {
+                const points = await getJourneyPoints();
+                const formattedPoints = points.map((point) => ({
+                    id: point.sys.id,
+                    title: point.fields.title,
+                    location: point.fields.location,
+                    description: point.fields.description,
+                    year: point.fields.year,
+                    icon: point.fields.icon,
+                    coordinates: [point.fields.latitude, point.fields.longitude],
+                    color: point.fields.color || GLOBE_COLORS.point,
+                    order: point.fields.order
+                }));
+
+                // Sort points by order
+                formattedPoints.sort((a, b) => a.order - b.order);
+                setJourneyPoints(formattedPoints);
+            } catch (err) {
+                console.error('Error fetching journey points:', err);
+                setJourneyPoints([]); // Set empty array instead of using hardcoded points
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchJourneyPoints();
+    }, []);
 
     // Initialize globe
     useEffect(() => {
-        if (!globeRef.current) return;
+        if (!globeRef.current || !journeyPoints.length) return;
 
         const initializeGlobe = () => {
             const createPin = () => {
@@ -195,11 +175,11 @@ const MyJourney: React.FC = () => {
             // Arcs
             globe.arcColor(() => GLOBE_COLORS.arc);
             globe.arcAltitude((d: ArcData) => {
-                // Special case for India to Texas connection
+                // Special case for India to Texas connection with tolerance
                 const isIndiaToTexas =
-                    d.startLat === 19.7515 && d.startLng === 75.7139 &&
-                    d.endLat === 31.9686 && d.endLng === -99.9018;
-                return isIndiaToTexas ? 0.35 : 0.1;  // Reduced from 0.4 to 0.35
+                    isCloseTo(d.startLat, 19.7515) && isCloseTo(d.startLng, 75.7139) &&
+                    isCloseTo(d.endLat, 31.9686) && isCloseTo(d.endLng, -99.9018);
+                return isIndiaToTexas ? 0.35 : 0.1;
             });
             globe.arcStroke(1);
             globe.arcDashLength(0.4);
@@ -236,52 +216,59 @@ const MyJourney: React.FC = () => {
                 globeInstanceRef.current.controls().dispose();
             }
         };
-    }, []);
+    }, [journeyPoints]);
 
     // Update points and arcs when current point changes
     useEffect(() => {
-        if (!globeInstanceRef.current || !globeReady) return;
+        if (!globeInstanceRef.current || !globeReady || !journeyPoints.length) return;
 
-        // Show points up to current index, but exclude the global point
-        const visiblePoints = JOURNEY_POINTS.slice(0, currentPointIndex + 1).filter(point => point.id !== 6);
+        const currentPoint = journeyPoints[currentPointIndex];
+
+        // Get points up to current index, excluding points with coordinates [0,0]
+        const visiblePoints = journeyPoints
+            .slice(0, currentPointIndex + 1)
+            .filter(point =>
+                point.coordinates[0] !== 0 || point.coordinates[1] !== 0
+            );
+
+        // Update globe visualization
         globeInstanceRef.current.pointsData(visiblePoints);
         globeInstanceRef.current.labelsData(visiblePoints);
         globeInstanceRef.current.customLayerData(visiblePoints);
 
-        // Handle globe rotation for global state
-        if (currentPointIndex === 5) { // Global state
-            // Store current camera position before enabling rotation
-            const currentPosition = globeInstanceRef.current.camera().position.clone();
-            const currentTarget = globeInstanceRef.current.controls().target.clone();
-
+        // Handle global state (point with coordinates [0,0])
+        if (currentPoint.coordinates[0] === 0 && currentPoint.coordinates[1] === 0) {
+            // Enable rotation for global state
             globeInstanceRef.current.controls().autoRotate = true;
             globeInstanceRef.current.controls().autoRotateSpeed = 2.0;
-
-            // Disable user controls during global state
             globeInstanceRef.current.controls().enableZoom = false;
             globeInstanceRef.current.controls().enableRotate = false;
             globeInstanceRef.current.controls().enablePan = false;
 
-            // Maintain the current camera position
-            globeInstanceRef.current.camera().position.copy(currentPosition);
-            globeInstanceRef.current.controls().target.copy(currentTarget);
+            // Set global view
+            globeInstanceRef.current.pointOfView({
+                lat: 0,
+                lng: 0,
+                altitude: 2.5
+            }, 1000);
         } else {
+            // Normal state
             globeInstanceRef.current.controls().autoRotate = false;
-            // Re-enable user controls for other states
-            globeInstanceRef.current.controls().enableZoom = true;
-            globeInstanceRef.current.controls().enableRotate = true;
-            globeInstanceRef.current.controls().enablePan = true;
+            globeInstanceRef.current.controls().enableZoom = false;
+            globeInstanceRef.current.controls().enableRotate = false;
+            globeInstanceRef.current.controls().enablePan = false;
+
+            // Update view for current point
+            globeInstanceRef.current.pointOfView({
+                lat: currentPoint.coordinates[0],
+                lng: currentPoint.coordinates[1],
+                altitude: 2.5
+            }, 1000);
         }
 
-        // Create arcs between consecutive points with curved paths
+        // Create arcs between consecutive points
         const arcs: ArcData[] = visiblePoints.slice(0, -1).map((point, i) => {
             const nextPoint = visiblePoints[i + 1];
-
-            // Special case for India to Texas connection
-            const isIndiaToTexas =
-                point.coordinates[0] === 19.7515 && point.coordinates[1] === 75.7139 &&
-                nextPoint.coordinates[0] === 31.9686 && nextPoint.coordinates[1] === -99.9018;
-
             return {
                 startLat: point.coordinates[0],
                 startLng: point.coordinates[1],
@@ -292,41 +279,15 @@ const MyJourney: React.FC = () => {
                     {
                         lat: (point.coordinates[0] + nextPoint.coordinates[0]) / 2,
                         lng: (point.coordinates[1] + nextPoint.coordinates[1]) / 2,
-                        altitude: isIndiaToTexas ? 0.33 : 0.2
+                        altitude: 0.2
                     }
                 ]
             };
         });
         globeInstanceRef.current.arcsData(arcs);
-    }, [currentPointIndex, globeReady]);
-
-    // Update globe view when current point changes
-    useEffect(() => {
-        if (globeInstanceRef.current && globeReady) {
-            updateGlobeView(currentPointIndex);
-        }
-    }, [currentPointIndex, globeReady]);
-
-    // Add this after the other useEffects
-    useEffect(() => {
-        if (globeInstanceRef.current) {
-            const controls = globeInstanceRef.current.controls();
-            controls.enableZoom = false;
-            controls.enableRotate = false;
-            controls.enablePan = false;
-        }
-    }, [currentPointIndex, globeReady]);
+    }, [currentPointIndex, globeReady, journeyPoints]);
 
     // Helper functions
-    const updateGlobeView = (index: number) => {
-        const point = JOURNEY_POINTS[index];
-        globeInstanceRef.current?.pointOfView({
-            lat: point.coordinates[0],
-            lng: point.coordinates[1],
-            altitude: 2.5
-        }, 1000);
-    };
-
     const customizeGlobeMaterial = (globe: GlobeInstance) => {
         const material = globe.globeMaterial() as THREE.MeshPhongMaterial;
         const canvas = createGlobeTexture();
@@ -434,11 +395,21 @@ const MyJourney: React.FC = () => {
 
     const setInitialView = (globe: GlobeInstance) => {
         globe.pointOfView({
-            lat: JOURNEY_POINTS[0].coordinates[0],
-            lng: JOURNEY_POINTS[0].coordinates[1],
+            lat: journeyPoints[0].coordinates[0],
+            lng: journeyPoints[0].coordinates[1],
             altitude: 2.5
         }, 0);
     };
+
+    if (isLoading) {
+        return (
+            <section className="relative min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-slate-800 text-xl">Loading visualization...</div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="relative min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 overflow-hidden">
@@ -452,9 +423,9 @@ const MyJourney: React.FC = () => {
                 </p>
             </div>
 
-            <div className="absolute inset-0 flex items-center justify-center mt-20">
-                {/* Left side - Globe */}
-                <div className="w-1/2 relative h-[600px] flex items-center justify-center">
+            <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center mt-32 md:mt-20">
+                {/* Globe section - hidden on mobile */}
+                <div className="hidden md:flex md:w-1/2 items-center justify-center relative h-[600px]">
                     {/* Globe container */}
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-amber-50/30 z-0" />
                     <div
@@ -463,14 +434,14 @@ const MyJourney: React.FC = () => {
                     />
                 </div>
 
-                {/* Right side - Cards */}
-                <div className="w-1/2 flex items-center justify-center p-8">
-                    <div className="relative w-full max-w-xl mx-auto px-16">
+                {/* Cards section */}
+                <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8">
+                    <div className="relative w-full max-w-xl mx-auto px-4 md:px-16">
                         {/* Navigation buttons */}
                         <button
                             onClick={() => setCurrentPointIndex(i => Math.max(i - 1, 0))}
                             disabled={currentPointIndex === 0}
-                            className={`absolute -left-12 top-1/2 -translate-y-1/2 p-4 rounded-full transition-all duration-300 z-10 
+                            className={`absolute md:-left-12 left-2 top-1/2 -translate-y-1/2 p-4 rounded-full transition-all duration-300 z-10 
                                 bg-white/90 hover:bg-white shadow-lg hover:shadow-xl hover:scale-110 
                                 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-lg
                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
@@ -482,13 +453,13 @@ const MyJourney: React.FC = () => {
                             </svg>
                         </button>
                         <button
-                            onClick={() => setCurrentPointIndex(i => Math.min(i + 1, JOURNEY_POINTS.length - 1))}
-                            disabled={currentPointIndex === JOURNEY_POINTS.length - 1}
-                            className={`absolute -right-12 top-1/2 -translate-y-1/2 p-4 rounded-full transition-all duration-300 z-10 
+                            onClick={() => setCurrentPointIndex(i => Math.min(i + 1, journeyPoints.length - 1))}
+                            disabled={currentPointIndex === journeyPoints.length - 1}
+                            className={`absolute md:-right-12 right-2 top-1/2 -translate-y-1/2 p-4 rounded-full transition-all duration-300 z-10 
                                 bg-white/90 hover:bg-white shadow-lg hover:shadow-xl hover:scale-110 
                                 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-lg
                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                                ${currentPointIndex === JOURNEY_POINTS.length - 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                ${currentPointIndex === journeyPoints.length - 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                             aria-label="Next location"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-600">
@@ -502,7 +473,7 @@ const MyJourney: React.FC = () => {
                             <div className="absolute top-6 right-6 z-10">
                                 <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 rounded-full shadow-sm">
                                     <span className="text-blue-600 font-medium tracking-wide">
-                                        {JOURNEY_POINTS[currentPointIndex].year}
+                                        {journeyPoints[currentPointIndex].year}
                                     </span>
                                 </div>
                             </div>
@@ -511,14 +482,14 @@ const MyJourney: React.FC = () => {
                             <div className="p-8 pb-6 border-b border-slate-100 bg-gradient-to-br from-white to-blue-50/30">
                                 <div className="flex items-center gap-4">
                                     <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center text-2xl shadow-sm transform transition-transform duration-300 hover:scale-110">
-                                        {JOURNEY_POINTS[currentPointIndex].icon}
+                                        {journeyPoints[currentPointIndex].icon}
                                     </div>
                                     <div>
                                         <h3 className="text-2xl font-semibold text-slate-900 tracking-tight">
-                                            {JOURNEY_POINTS[currentPointIndex].location}
+                                            {journeyPoints[currentPointIndex].location}
                                         </h3>
                                         <p className="text-slate-600 mt-1 font-medium">
-                                            {JOURNEY_POINTS[currentPointIndex].title}
+                                            {journeyPoints[currentPointIndex].title}
                                         </p>
                                     </div>
                                 </div>
@@ -527,7 +498,7 @@ const MyJourney: React.FC = () => {
                             {/* Description */}
                             <div className="p-8 bg-gradient-to-br from-white to-blue-50/20">
                                 <p className="text-slate-700 leading-relaxed text-lg">
-                                    {JOURNEY_POINTS[currentPointIndex].description}
+                                    {journeyPoints[currentPointIndex].description}
                                 </p>
                             </div>
                         </div>
@@ -538,7 +509,7 @@ const MyJourney: React.FC = () => {
             {/* Centered Progress Indicator */}
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
                 <div className="flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-100">
-                    {JOURNEY_POINTS.map((point, index) => (
+                    {journeyPoints.map((point, index) => (
                         <button
                             key={point.id}
                             onClick={() => setCurrentPointIndex(index)}

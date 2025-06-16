@@ -3,37 +3,46 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vite + React + TS</title>
-  <meta name="description" content="Lovable Generated Project" />
-  <meta name="author" content="Lovable" />
+  <title>Ravikant Agrawal</title>
+  <meta name="description" content="Personal portfolio website of Ravi Agrawal" />
+  <meta name="author" content="Ravi Agrawal" />
 
-  <meta property="og:title" content="hello-digital-me" />
-  <meta property="og:description" content="Lovable Generated Project" />
+  <meta property="og:title" content="Ravikant Agrawal" />
+  <meta property="og:description" content="Personal portfolio website of Ravi Agrawal" />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+  <meta property="og:image" content="/og-image.png" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:site" content="@lovable_dev" />
-  <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <meta name="twitter:site" content="@ravikantagrawal" />
+  <meta name="twitter:image" content="/og-image.png" />
+
+  <!-- Block LinkedIn Windows App Integration -->
+  <script>
+    // Prevent LinkedIn Windows App Integration
+    if (typeof window !== 'undefined') {
+      // Block the specific LinkedIn Windows app ID
+      const blockedAppId = "7EE7776C.LinkedInforWindows_w1wdnht996qgy!App";
+
+      // Override getInstalledRelatedApps to filter out LinkedIn Windows app
+      if (navigator.getInstalledRelatedApps) {
+        const originalGetInstalledRelatedApps = navigator.getInstalledRelatedApps;
+        navigator.getInstalledRelatedApps = async function () {
+          try {
+            const apps = await originalGetInstalledRelatedApps.call(navigator);
+            return apps.filter(app => app.id !== blockedAppId);
+          } catch (error) {
+            return [];
+          }
+        };
+      }
+    }
+  </script>
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
-  <script>
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on("init", user => {
-        if (!user) {
-          window.netlifyIdentity.on("login", () => {
-            document.location.href = "/admin/";
-          });
-        }
-      });
-    }
-  </script>
 </body>
 
 </html>

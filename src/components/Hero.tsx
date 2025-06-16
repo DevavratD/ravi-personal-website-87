@@ -1,22 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowDown } from 'lucide-react';
+import { getHeroContent } from '@/utils/contentful';
+import { IHeroContent } from '@/types/contentful';
 
 const Hero = () => {
+  const [heroContent, setHeroContent] = useState<IHeroContent | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHeroContent = async () => {
+      try {
+        const content = await getHeroContent();
+        if (content) {
+          setHeroContent(content.fields as IHeroContent);
+        }
+      } catch (err) {
+        console.error('Error fetching hero content:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchHeroContent();
+  }, []);
+
   const scrollToAbout = () => {
     document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  if (isLoading) {
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-amber-50">
+        <div className="text-slate-600">Loading...</div>
+      </section>
+    );
+  }
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-amber-50 px-4">
       <div className="max-w-4xl mx-auto text-center space-y-8">
         <div className="space-y-4">
-          <h1 className="text-5xl md:text-7xl font-light text-slate-800 tracking-tight">
-            Hi, I'm <span className="text-blue-600 font-medium">Ravikant</span> 👋
-          </h1>
+          <h1
+            className="text-5xl md:text-7xl font-light text-slate-800 tracking-tight"
+            dangerouslySetInnerHTML={{
+              __html: heroContent?.title || "Hi, I'm <span class='text-blue-600 font-medium'>Ravikant</span> 👋"
+            }}
+          />
           <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            AI & Web3 Growth Strategy Leader
-            Building the future of decentralized identity and AI-driven ecosystems
+            {heroContent?.subtitle || "AI & Web3 Growth Strategy Leader\nBuilding the future of decentralized identity and AI-driven ecosystems"}
           </p>
         </div>
 
@@ -26,7 +57,7 @@ const Hero = () => {
             size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full transition-all duration-300 hover:scale-105"
           >
-            Learn about my journey
+            {heroContent?.buttonText || "Learn about my journey"}
           </Button>
           <Button
             variant="outline"

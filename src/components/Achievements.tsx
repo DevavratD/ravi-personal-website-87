@@ -1,47 +1,39 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Brain, Lightbulb, Video, Users, GraduationCap, Rocket } from 'lucide-react';
-
-const milestones = [
-    {
-        icon: Brain,
-        title: "AI Research & Implementation",
-        description: "I'm currently leading multiple AI transformation projects, where I get to develop practical applications of machine learning in real business contexts. It's exciting to see AI making a real impact!",
-        year: "2024"
-    },
-    {
-        icon: Lightbulb,
-        title: "Web3 Thought Leadership",
-        description: "Last year, I dove deep into blockchain adoption and DeFi protocols, sharing my insights on the future of the decentralized web. It's been amazing to contribute to this evolving space.",
-        year: "2023"
-    },
-    {
-        icon: Video,
-        title: "Technical Content Creator",
-        description: "I started creating video series on AI and Web3, and I'm thrilled to have reached thousands of tech enthusiasts and professionals. It's been incredible connecting with so many like-minded individuals!",
-        year: "2023"
-    },
-    {
-        icon: Users,
-        title: "Community Building",
-        description: "One of my proudest achievements has been building engaged communities around emerging technologies. I love facilitating discussions on AI ethics and Web3 governance with passionate individuals.",
-        year: "2022"
-    },
-    {
-        icon: GraduationCap,
-        title: "Innovation in EdTech",
-        description: "I developed learning frameworks to make complex AI and blockchain concepts more accessible. Seeing people grasp these technologies has been incredibly rewarding.",
-        year: "2022"
-    },
-    {
-        icon: Rocket,
-        title: "Digital Transformation Leader",
-        description: "I guided organizations through their digital transformation journey, incorporating AI and blockchain technologies. It's been fulfilling to help companies embrace the future of tech.",
-        year: "2021"
-    }
-];
+import { getAchievements } from '@/utils/contentful';
+import { IAchievement } from '@/types/contentful';
 
 const Milestones = () => {
+    const [achievements, setAchievements] = useState<IAchievement[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAchievements = async () => {
+            try {
+                const data = await getAchievements();
+                setAchievements(data);
+            } catch (error) {
+                console.error('Error fetching achievements:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAchievements();
+    }, []);
+
+    if (loading) {
+        return (
+            <section className="py-20 bg-gray-50">
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="text-center">
+                        <p className="text-slate-600">Loading achievements...</p>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
     return (
         <section className="py-20 bg-gray-50">
             <div className="max-w-6xl mx-auto px-4">
@@ -55,31 +47,28 @@ const Milestones = () => {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
-                    {milestones.map((milestone, index) => {
-                        const Icon = milestone.icon;
-                        return (
-                            <Card key={index} className="p-6 border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                                <div className="flex items-start gap-4">
-                                    <div className="bg-blue-50 p-3 rounded-lg">
-                                        <Icon className="w-6 h-6 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <h3 className="text-lg font-medium text-slate-800">
-                                                {milestone.title}
-                                            </h3>
-                                            <span className="text-sm text-blue-600 font-medium">
-                                                {milestone.year}
-                                            </span>
-                                        </div>
-                                        <p className="text-slate-600">
-                                            {milestone.description}
-                                        </p>
-                                    </div>
+                    {achievements.map((achievement) => (
+                        <Card key={achievement.sys.id} className="p-6 border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                            <div className="flex items-start gap-4">
+                                <div className="bg-blue-50 p-3 rounded-lg text-2xl">
+                                    {achievement.fields.icon}
                                 </div>
-                            </Card>
-                        );
-                    })}
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <h3 className="text-lg font-medium text-slate-800">
+                                            {achievement.fields.title}
+                                        </h3>
+                                        <span className="text-sm text-blue-600 font-medium">
+                                            {achievement.fields.year}
+                                        </span>
+                                    </div>
+                                    <p className="text-slate-600">
+                                        {achievement.fields.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
                 </div>
             </div>
         </section>
