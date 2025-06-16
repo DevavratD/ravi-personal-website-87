@@ -12,7 +12,7 @@ const iconMap: { [key: string]: React.ReactNode } = {
 
 const Footer = () => {
   return (
-    <footer className="bg-slate-900 py-20" role="contentinfo">
+    <footer id="connect" className="bg-slate-900 py-20" role="contentinfo">
       <div className="max-w-6xl mx-auto px-4">
         {/* Contact and Social Section */}
         <div className="text-center mb-16">

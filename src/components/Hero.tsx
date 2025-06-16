@@ -28,6 +28,10 @@ const Hero = () => {
     document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const scrollToConnect = () => {
+    document.getElementById('connect')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   if (isLoading) {
     return (
       <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-amber-50">
@@ -62,6 +66,7 @@ const Hero = () => {
           <Button
             variant="outline"
             size="lg"
+            onClick={scrollToConnect}
             className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 rounded-full transition-all duration-300"
           >
             Connect with me
