@@ -14,7 +14,6 @@ interface JourneyPoint {
     year: string;
     icon: string;
     coordinates: [number, number];
-    color: string;
     order?: number;
 }
 
@@ -45,7 +44,6 @@ type GlobeInstance = ReturnType<typeof Globe>;
 
 // Constants
 
-
 const GLOBE_COLORS = {
     ocean: '#3b82f6',
     land: '#12c454',
@@ -57,7 +55,23 @@ const GLOBE_COLORS = {
     atmosphere: '#3b82f6'
 };
 
+// Predefined colors for journey points
+const JOURNEY_COLORS = [
+    '#3b82f6', // blue
+    '#10b981', // green
+    '#f59e0b', // amber
+    '#ef4444', // red
+    '#8b5cf6', // purple
+    '#ec4899', // pink
+    '#06b6d4', // cyan
+    '#f97316', // orange
+];
+
 // Add this helper function at the top level, after the constants
+const getJourneyColor = (index: number): string => {
+    return JOURNEY_COLORS[index % JOURNEY_COLORS.length];
+};
+
 const isCloseTo = (a: number, b: number): boolean => {
     const tolerance = Math.abs(b * 0.05); // 5% of the target value
     return Math.abs(a - b) < tolerance;
@@ -69,6 +83,7 @@ const MyJourney: React.FC = () => {
     const globeInstanceRef = useRef<GlobeInstance | null>(null);
     const lastScrollTime = useRef(Date.now());
     const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+    const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
 
     // State
     const [journeyPoints, setJourneyPoints] = useState<JourneyPoint[]>([]);
@@ -76,6 +91,19 @@ const MyJourney: React.FC = () => {
     const [globeReady, setGlobeReady] = useState(false);
     const [isMouseOverGlobe, setIsMouseOverGlobe] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Cleanup function
+    const cleanupGlobe = useCallback(() => {
+        if (globeInstanceRef.current) {
+            // Dispose of the globe instance
+            globeInstanceRef.current.controls().dispose();
+            if (rendererRef.current) {
+                rendererRef.current.dispose();
+            }
+            globeInstanceRef.current = null;
+            rendererRef.current = null;
+        }
+    }, []);
 
     // Fetch journey points
     useEffect(() => {
@@ -89,8 +117,7 @@ const MyJourney: React.FC = () => {
                     description: point.fields.description,
                     year: point.fields.year,
                     icon: point.fields.icon,
-                    coordinates: [point.fields.latitude, point.fields.longitude],
-                    color: point.fields.color || GLOBE_COLORS.point,
+                    coordinates: [point.fields.latitude, point.fields.longitude] as [number, number],
                     order: point.fields.order
                 }));
 
@@ -110,6 +137,9 @@ const MyJourney: React.FC = () => {
     // Initialize globe
     useEffect(() => {
         if (!globeRef.current || !journeyPoints.length) return;
+
+        // Cleanup previous instance if it exists
+        cleanupGlobe();
 
         const initializeGlobe = () => {
             const createPin = () => {
@@ -145,6 +175,9 @@ const MyJourney: React.FC = () => {
 
             const globe = new Globe(globeRef.current!);
 
+            // Store the renderer reference
+            rendererRef.current = globe.renderer();
+
             // Basic globe settings
             globe.backgroundColor('rgba(0,0,0,0)');
             globe.showGlobe(true);
@@ -167,10 +200,11 @@ const MyJourney: React.FC = () => {
             globe.labelLat((d: JourneyPoint) => d.coordinates[0]);
             globe.labelLng((d: JourneyPoint) => d.coordinates[1]);
             globe.labelText((d: JourneyPoint) => d.location);
-            globe.labelSize(2.5);
+            globe.labelSize(3);
             globe.labelDotRadius(0.4);
-            globe.labelColor(() => '#1e293b');
+            globe.labelColor(() => '#083757');
             globe.labelResolution(2);
+
 
             // Arcs
             globe.arcColor(() => GLOBE_COLORS.arc);
@@ -211,12 +245,11 @@ const MyJourney: React.FC = () => {
 
         initializeGlobe();
 
+        // Cleanup on unmount
         return () => {
-            if (globeInstanceRef.current) {
-                globeInstanceRef.current.controls().dispose();
-            }
+            cleanupGlobe();
         };
-    }, [journeyPoints]);
+    }, [journeyPoints, cleanupGlobe]);
 
     // Update points and arcs when current point changes
     useEffect(() => {

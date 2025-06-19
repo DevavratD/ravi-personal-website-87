@@ -58,7 +58,7 @@ export interface IAchievementsContent {
 export interface IMediaItem {
     fields: {
         title: string;
-        type: 'talks' | 'articles' | 'thought-leadership';
+        type: 'talks' | 'articles' | 'thought-leadership' | 'still-building';
         url: string;
         embedUrl?: string;
         videoId?: string;

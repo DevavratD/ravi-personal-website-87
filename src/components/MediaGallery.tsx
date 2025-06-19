@@ -123,6 +123,7 @@ const MediaGallery = () => {
       case 'talks': return 'My Talks & Presentations';
       case 'articles': return 'My Articles & Blog Posts';
       case 'thought-leadership': return 'Thought Leadership';
+      case 'still-building': return 'Still Building and Winning';
       case 'featured': return 'Featured Content';
       default: return 'My Content';
     }
@@ -229,7 +230,8 @@ const MediaGallery = () => {
               { key: 'all', label: 'All Content' },
               { key: 'talks', label: 'Talks' },
               { key: 'articles', label: 'Articles' },
-              { key: 'thought-leadership', label: 'Thought Leadership' }
+              { key: 'thought-leadership', label: 'Thought Leadership' },
+              { key: 'still-building', label: 'Still Building and Winning' }
             ].map(({ key, label }) => (
               <Button
                 key={key}
@@ -289,26 +291,25 @@ const MediaGallery = () => {
         {/* Video Modal */}
         {selectedVideo && (
           <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-4 max-w-4xl w-full">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-medium text-slate-800">{selectedVideo.title}</h3>
+            <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
+              <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                <h3 className="text-xl font-medium text-slate-800 pr-4">{selectedVideo.title}</h3>
                 <button
                   onClick={() => setSelectedVideo(null)}
-                  className="text-slate-500 hover:text-slate-700"
+                  className="text-slate-500 hover:text-slate-700 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Close video"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              <div className="aspect-w-16 aspect-h-9">
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                 <iframe
-                  width="100%"
-                  height="100%"
                   src={getEmbedUrl(selectedVideo.videoId)}
                   title={selectedVideo.title}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  className="rounded-lg"
+                  className="absolute top-0 left-0 w-full h-full rounded-b-lg"
                 />
               </div>
             </div>

@@ -7,7 +7,19 @@ const iconMap: { [key: string]: React.ReactNode } = {
   message: <MessageCircle className="w-6 h-6 text-blue-400" />,
   linkedin: <Linkedin className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition-colors" />,
   twitter: <Twitter className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition-colors" />,
-  youtube: <Youtube className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition-colors" />
+  youtube: <Youtube className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition-colors" />,
+  linktree: (
+    <svg
+      className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition-colors"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+    >
+      <path d="m13.73635 5.85251 4.00467 -4.11665 2.3248 2.3808 -4.20064 4.00466h5.9085v3.30473h-5.9365l4.22865 4.10766 -2.3248 2.3338L12.0005 12.099l-5.74052 5.76852 -2.3248 -2.3248 4.22864 -4.10766h-5.9375V8.12132h5.9085L3.93417 4.11666l2.3248 -2.3808 4.00468 4.11665V0h3.4727zm-3.4727 10.30614h3.4727V24h-3.4727z"
+        fill="currentColor"
+      />
+    </svg>
+  )
 };
 
 const Footer = () => {
@@ -34,7 +46,7 @@ const Footer = () => {
             <h3 className="text-lg font-medium text-white mb-2">Email</h3>
             <p className="text-slate-300 mb-4">Get in touch for collaborations and inquiries</p>
             <a
-              href="mailto:ravikant.agrawal@gmail.com"
+              href="mailto:ravidilse@gmail.com"
               className="text-blue-400 hover:text-blue-300 font-medium inline-flex items-center"
               aria-label="Send Message for Email"
             >
@@ -117,6 +129,18 @@ const Footer = () => {
             >
               <div className="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 {iconMap.youtube}
+              </div>
+            </a>
+
+            <a
+              href="https://linktr.ee/ravikantagrawal"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group"
+              aria-label="Linktree Profile"
+            >
+              <div className="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                {iconMap.linktree}
               </div>
             </a>
           </div>

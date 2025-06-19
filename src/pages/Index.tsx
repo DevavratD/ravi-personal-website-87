@@ -2,7 +2,6 @@ import React from 'react';
 import Hero from '@/components/Hero';
 import About from '@/components/About';
 import MyJourney from '@/components/MyJourney';
-import Milestones from '@/components/Achievements';
 import MediaGallery from '@/components/MediaGallery';
 import Footer from '@/components/Footer';
 
@@ -12,7 +11,6 @@ const Index = () => {
       <Hero />
       <About />
       <MyJourney />
-      <Milestones />
       <MediaGallery />
       <Footer />
     </div>
