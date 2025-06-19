@@ -1,12 +1,25 @@
 import React from 'react';
-import { Mail, Calendar, Send, Linkedin, Twitter, Youtube, MessageCircle } from 'lucide-react';
+import { Mail, Calendar, Send, Linkedin, Youtube, MessageCircle } from 'lucide-react';
 
 const iconMap: { [key: string]: React.ReactNode } = {
   mail: <Mail className="w-6 h-6 text-blue-400" />,
   calendar: <Calendar className="w-6 h-6 text-blue-400" />,
   message: <MessageCircle className="w-6 h-6 text-blue-400" />,
   linkedin: <Linkedin className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition-colors" />,
-  twitter: <Twitter className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition-colors" />,
+  twitter: (
+    <svg
+      className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition-colors"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+    >
+      <path
+        d="M17.53 2H21.5L14.36 10.39L22.75 22H15.92L10.89 15.3L5.18 22H1.19L8.75 13.08L0.75 2H7.74L12.3 8.13L17.53 2ZM16.32 20H18.34L7.06 3.97H4.92L16.32 20Z"
+        fill="currentColor"
+      />
+    </svg>
+  ),
   youtube: <Youtube className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition-colors" />,
   linktree: (
     <svg
