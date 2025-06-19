@@ -230,8 +230,8 @@ const MediaGallery = () => {
               { key: 'featured', label: 'Featured' },
               { key: 'all', label: 'All Content' },
               { key: 'talks', label: 'Talks' },
-              { key: 'articles', label: 'Articles' },
               { key: 'thought-leadership', label: 'Thought Leadership' },
+              { key: 'articles', label: 'Articles' },
               { key: 'still-building', label: 'Still Building and Winning' }
             ].map(({ key, label }) => (
               <Button
