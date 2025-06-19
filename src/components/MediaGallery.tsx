@@ -157,6 +157,7 @@ const MediaGallery = () => {
         );
       case 'articles':
       case 'thought-leadership':
+      case 'still-building':
         // Handle LinkedIn content
         if (item.fields.url?.includes('linkedin.com')) {
           return <LinkedInEmbed url={item.fields.embedUrl || item.fields.url} />;
