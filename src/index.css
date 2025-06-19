@@ -101,3 +101,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Scrollbar Styles (Light Mode Only) */
+::-webkit-scrollbar {
+  width: 12px;
+  background: #f0f6ff;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 8px;
+  border: 3px solid #f0f6ff;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2563eb;
+}
+
+::-webkit-scrollbar-corner {
+  background: #f0f6ff;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 #f0f6ff;
+}
