@@ -69,7 +69,7 @@ const Hero = () => {
             onClick={scrollToConnect}
             className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 rounded-full transition-all duration-300"
           >
-            Connect with me
+            Let's connect
           </Button>
         </div>
 
