@@ -253,40 +253,66 @@ const MediaGallery = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentItems.map((item) => (
-            <Card key={item.sys.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <div className="relative overflow-hidden h-[200px]">
-                {renderEmbed(item)}
-              </div>
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-base font-medium text-slate-800 mb-2 line-clamp-2">
-                      {item.fields.title}
-                    </h3>
-                    {item.fields.description && (
-                      <p className="text-sm text-slate-600 line-clamp-2 mb-2">
-                        {item.fields.description}
-                      </p>
-                    )}
-                    {item.fields.date && (
-                      <p className="text-xs text-slate-500">
-                        {new Date(item.fields.date).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                  <a
-                    href={item.fields.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700 transition-colors inline-flex items-center shrink-0"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
+          {currentItems.map((item) => {
+            // Determine if the card should be fully clickable
+            const isArticleOrDocument =
+              (item.fields.type === 'articles' || item.fields.type === 'documents') &&
+              !item.fields.url?.includes('linkedin.com') &&
+              !item.fields.url?.includes('twitter.com') &&
+              !item.fields.url?.includes('x.com') &&
+              !item.fields.embedUrl;
+            const cardContent = (
+              <>
+                <div className="relative overflow-hidden h-[200px]">
+                  {renderEmbed(item)}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-base font-medium text-slate-800 mb-2 line-clamp-2">
+                        {item.fields.title}
+                      </h3>
+                      {item.fields.description && (
+                        <p className="text-sm text-slate-600 line-clamp-2 mb-2">
+                          {item.fields.description}
+                        </p>
+                      )}
+                      {item.fields.date && (
+                        <p className="text-xs text-slate-500">
+                          {new Date(item.fields.date).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <a
+                      href={item.fields.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-700 transition-colors inline-flex items-center shrink-0"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                </CardContent>
+              </>
+            );
+            return isArticleOrDocument ? (
+              <a
+                key={item.sys.id}
+                href={item.fields.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer hover:border-blue-500 border-2 border-transparent"
+                style={{ textDecoration: 'none' }}
+              >
+                {cardContent}
+              </a>
+            ) : (
+              <Card key={item.sys.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500 border-2 border-transparent">
+                {cardContent}
+              </Card>
+            );
+          })}
         </div>
 
         {/* Video Modal */}
@@ -319,20 +345,77 @@ const MediaGallery = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-8">
+          <div className="flex justify-center gap-2 mt-12">
             <Button
               variant="outline"
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="rounded-full"
+              className="rounded-full px-3 py-2"
+              aria-label="Previous page"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
+            {/* Numbered page buttons with ellipsis */}
+            {(() => {
+              const pageButtons = [];
+              let start = Math.max(1, currentPage - 2);
+              let end = Math.min(totalPages, currentPage + 2);
+              if (currentPage <= 3) {
+                end = Math.min(5, totalPages);
+              } else if (currentPage >= totalPages - 2) {
+                start = Math.max(1, totalPages - 4);
+              }
+              if (start > 1) {
+                pageButtons.push(
+                  <button
+                    key={1}
+                    onClick={() => setCurrentPage(1)}
+                    className={`mx-1 px-3 py-2 rounded-full border transition-colors ${currentPage === 1 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-blue-50 hover:border-blue-400'}`}
+                  >
+                    1
+                  </button>
+                );
+                if (start > 2) {
+                  pageButtons.push(
+                    <span key="start-ellipsis" className="mx-1 text-slate-400">...</span>
+                  );
+                }
+              }
+              for (let i = start; i <= end; i++) {
+                pageButtons.push(
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i)}
+                    className={`mx-1 px-3 py-2 rounded-full border transition-colors ${currentPage === i ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-blue-50 hover:border-blue-400'}`}
+                  >
+                    {i}
+                  </button>
+                );
+              }
+              if (end < totalPages) {
+                if (end < totalPages - 1) {
+                  pageButtons.push(
+                    <span key="end-ellipsis" className="mx-1 text-slate-400">...</span>
+                  );
+                }
+                pageButtons.push(
+                  <button
+                    key={totalPages}
+                    onClick={() => setCurrentPage(totalPages)}
+                    className={`mx-1 px-3 py-2 rounded-full border transition-colors ${currentPage === totalPages ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-blue-50 hover:border-blue-400'}`}
+                  >
+                    {totalPages}
+                  </button>
+                );
+              }
+              return pageButtons;
+            })()}
             <Button
               variant="outline"
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="rounded-full"
+              className="rounded-full px-3 py-2"
+              aria-label="Next page"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
